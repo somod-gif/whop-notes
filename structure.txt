@@ -1,0 +1,43 @@
+/app
+│
+├── layout.tsx
+├── page.tsx                  # Landing page / redirect to dashboard
+│
+├── dashboard/
+│   ├── page.tsx
+│   └── components/
+│       ├── NoteEditor.tsx
+│       ├── NoteList.tsx
+│       └── NoteCard.tsx
+│
+├── notes/
+│   ├── [id]/page.tsx
+│   └── new/page.tsx
+│
+├── api/
+│   ├── notes/
+│   │   ├── route.ts
+│   │   └── [id]/route.ts
+│
+├── backend/
+│   ├── lib/
+│   │   ├── database.ts
+│   │   └── whopClient.ts
+│   └── models/
+│       └── Note.ts
+│
+├── components/
+│   ├── Navbar.tsx
+│   ├── Sidebar.tsx
+│   ├── Button.tsx
+│   └── Loader.tsx
+│
+├── hooks/
+│   ├── useNotes.ts
+│   └── useDebounce.ts
+│
+├── store/
+│   └── index.ts
+│
+└── types/
+    └── frontend.ts
