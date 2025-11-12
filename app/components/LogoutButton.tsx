@@ -1,35 +1,17 @@
-// src/components/LogoutButton.tsx
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/app/store';
-import Button from './Button';
-
 export default function LogoutButton() {
-  const router = useRouter();
-  const setUser = useAuthStore((state) => state.setUser);
-  const setToken = useAuthStore((state) => state.setToken);
-
   const handleLogout = async () => {
-    try {
-      // Optionally call API to invalidate session
-      // await fetch('/api/auth/logout', { method: 'POST' });
-
-      // Clear local auth state
-      setUser(null);
-      setToken(null);
-
-      // Redirect to login
-      router.push('/login');
-    } catch (err) {
-      console.error('Logout failed:', err);
-      alert('Failed to logout');
-    }
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/login';
   };
 
   return (
-    <Button variant="secondary" onClick={handleLogout}>
+    <button
+      onClick={handleLogout}
+      className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+    >
       Logout
-    </Button>
+    </button>
   );
 }
