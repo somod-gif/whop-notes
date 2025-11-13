@@ -6,7 +6,7 @@ import { whopsdk } from '@/lib/whop-sdk';
 export async function GET(request: NextRequest) {
   try {
     // Verify user token from Whop
-    const token = headers().get('authorization')?.replace('Bearer ', '');
+    const token = (await headers()).get('authorization')?.replace('Bearer ', '');
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const token = headers().get('authorization')?.replace('Bearer ', '');
+    const token = (await headers()).get('authorization')?.replace('Bearer ', '');
     if (!token) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

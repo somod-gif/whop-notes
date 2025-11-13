@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-
-import { createWhopAPI } from "@whop/sdk";
+import createWhopAPI from "@whop/sdk";
 import { useEffect, useState } from "react";
 
 export function WhopProvider({ children }: { children: React.ReactNode }) {
@@ -14,8 +13,8 @@ export function WhopProvider({ children }: { children: React.ReactNode }) {
     const initializeWhop = async () => {
       try {
         // Initialize Whop SDK
-        const whopAPI = createWhopAPI({
-          appId: process.env.NEXT_PUBLIC_WHOP_APP_ID!,
+        const whopAPI: any = new createWhopAPI({
+            appID: process.env.NEXT_PUBLIC_WHOP_APP_ID!,
         });
         
         setWhop(whopAPI);
