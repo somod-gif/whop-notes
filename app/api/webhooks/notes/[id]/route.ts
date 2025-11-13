@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 import { getNotesCollection } from '@/lib/mongodb';
+import { headers } from 'next/headers';
+import { whopsdk } from '@/lib/whop-sdk';
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
+
+export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
+    const token = headers().get('authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { userId } = await whopsdk.verifyUserToken(token);
     const { id } = await params;
     const body = await request.json();
     
@@ -18,7 +27,7 @@ export async function PUT(
     };
 
     const result = await notesCollection.updateOne(
-      { _id: new ObjectId(id) },
+      { _id: new ObjectId(id), userId },
       { $set: updatedNote }
     );
 
@@ -33,16 +42,20 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const token = headers().get('authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { userId } = await whopsdk.verifyUserToken(token);
     const { id } = await params;
     
     const notesCollection = await getNotesCollection();
     const result = await notesCollection.deleteOne({
-      _id: new ObjectId(id)
+      _id: new ObjectId(id),
+      userId
     });
 
     if (result.deletedCount === 0) {
