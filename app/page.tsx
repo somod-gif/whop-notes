@@ -20,13 +20,20 @@ export default function HomePage() {
   const { context, loading, error } = useWhop();
   const [notes, setNotes] = useState<Note[]>([]);
   const [activeNote, setActiveNote] = useState<Note | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Start closed on mobile
 
   useEffect(() => {
     if (context?.user?.id) {
       fetchNotes(context.user.id);
     }
   }, [context]);
+
+  // Auto-close sidebar when note is selected on mobile
+  useEffect(() => {
+    if (activeNote && window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
+  }, [activeNote]);
 
   const fetchNotes = async (userId: string) => {
     try {
@@ -89,6 +96,12 @@ export default function HomePage() {
       
       setNotes([noteWithDates, ...notes]);
       setActiveNote(noteWithDates);
+      
+      // Close sidebar on mobile after creating note
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      }
+      
       toast.success("Note created successfully!");
     } catch (error) {
       console.error('Error creating note:', error);
@@ -176,6 +189,11 @@ export default function HomePage() {
     }
   };
 
+  // Responsive sidebar toggle handler
+  const handleSidebarToggle = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -214,11 +232,24 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <div
-        className={`${
-          isSidebarOpen ? "w-80" : "w-0"
-        } transition-all duration-300`}
+        className={`
+          fixed md:relative z-30 h-full
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          transition-transform duration-300 ease-in-out
+          w-80 md:w-80 lg:w-96
+          bg-white border-r border-gray-200
+          md:flex md:flex-col
+        `}
       >
         <NotesSidebar
           notes={notes}
@@ -231,12 +262,13 @@ export default function HomePage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+      <div className="flex-1 flex flex-col min-w-0"> {/* min-w-0 prevents flex overflow */}
+        <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              onClick={handleSidebarToggle}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Toggle sidebar"
             >
               <svg
                 className="w-5 h-5 text-gray-600"
@@ -254,30 +286,38 @@ export default function HomePage() {
             </button>
 
             {!isSidebarOpen && (
-              <h1 className="text-xl font-semibold text-gray-900">Notes</h1>
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
+                {activeNote ? activeNote.title : "Notes"}
+              </h1>
             )}
           </div>
 
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <span className="text-xs sm:text-sm text-gray-600 truncate max-w-[120px] sm:max-w-none">
               Welcome, {context.user.username || context.user.email || "User"}
             </span>
           </div>
         </header>
 
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-4 sm:p-6 lg:p-8">
           {activeNote ? (
             <NoteEditor activeNote={activeNote} onSaveNote={updateNote} />
           ) : (
             <div className="h-full flex items-center justify-center text-gray-500">
-              <div className="text-center">
-                <h2 className="text-2xl font-light mb-4">No Note Selected</h2>
-                <p>Select a note from the sidebar or create a new one</p>
+              <div className="text-center max-w-md mx-auto px-4">
+                <h2 className="text-xl sm:text-2xl font-light mb-4">No Note Selected</h2>
+                <p className="mb-4">Select a note from the sidebar or create a new one</p>
                 <button
                   onClick={createNewNote}
-                  className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors w-full sm:w-auto"
                 >
                   Create Your First Note
+                </button>
+                <button
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="mt-2 border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg transition-colors w-full sm:w-auto md:hidden"
+                >
+                  Open Notes List
                 </button>
               </div>
             </div>

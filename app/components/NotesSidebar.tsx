@@ -18,6 +18,7 @@ interface NotesSidebarProps {
   onCreateNote: () => void;
   onDeleteNote: (noteId: string) => void;
   onDuplicateNote: (note: Note) => void;
+  onCloseSidebar?: () => void;
 }
 
 export default function NotesSidebar({ 
@@ -26,7 +27,8 @@ export default function NotesSidebar({
   onNoteSelect, 
   onCreateNote, 
   onDeleteNote,
-  onDuplicateNote 
+  onDuplicateNote,
+  onCloseSidebar 
 }: NotesSidebarProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
@@ -37,10 +39,8 @@ export default function NotesSidebar({
   );
 
   const formatDate = (date: Date | string) => {
-    // Ensure date is a proper Date object
     const noteDate = date instanceof Date ? date : new Date(date);
     
-    // Check if it's a valid date
     if (isNaN(noteDate.getTime())) {
       return 'Unknown date';
     }
@@ -78,20 +78,28 @@ export default function NotesSidebar({
     onDuplicateNote(note);
   };
 
+  const handleNoteSelect = (note: Note) => {
+    onNoteSelect(note);
+    if (onCloseSidebar) {
+      onCloseSidebar();
+    }
+  };
+
   return (
-    <div className="w-80 bg-white border-r border-gray-200 h-screen flex flex-col">
+    <div className="w-full h-full bg-white border-r border-gray-200 flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-xl font-semibold text-gray-900">Notes</h1>
+      <div className="p-3 sm:p-4 border-b border-gray-200">
+        <div className="flex justify-between items-center mb-3 sm:mb-4">
+          <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Notes</h1>
           <button
             onClick={onCreateNote}
-            className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors flex items-center gap-2"
+            className="bg-blue-500 hover:bg-blue-600 text-white p-1.5 sm:p-2 rounded-lg transition-colors flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            New Note
+            <span className="hidden sm:inline">New Note</span>
+            <span className="sm:hidden">New</span>
           </button>
         </div>
         
@@ -102,9 +110,9 @@ export default function NotesSidebar({
             placeholder="Search notes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 pl-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full px-3 py-2 pl-9 sm:pl-10 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
           />
-          <svg className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 absolute left-2.5 sm:left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
@@ -120,24 +128,24 @@ export default function NotesSidebar({
           filteredNotes.map((note) => (
             <div
               key={note._id}
-              className={`p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors group relative ${
+              className={`p-3 sm:p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors group relative ${
                 activeNote && activeNote._id === note._id ? 'bg-blue-50 border-blue-200' : ''
               }`}
-              onClick={() => onNoteSelect(note)}
+              onClick={() => handleNoteSelect(note)}
             >
               {/* Delete Confirmation Overlay */}
               {showDeleteConfirm === note._id && (
-                <div className="absolute inset-0 bg-red-50 border border-red-200 rounded flex items-center justify-center space-x-2 z-10">
-                  <span className="text-red-600 text-sm font-medium">Delete?</span>
+                <div className="absolute inset-0 bg-red-50 border border-red-200 rounded flex items-center justify-center space-x-2 z-10 p-2">
+                  <span className="text-red-600 text-xs sm:text-sm font-medium">Delete?</span>
                   <button
                     onClick={() => confirmDelete(note._id!)}
-                    className="text-red-600 hover:text-red-800 text-sm font-medium px-2 py-1"
+                    className="text-red-600 hover:text-red-800 text-xs sm:text-sm font-medium px-2 py-1 bg-red-100 rounded"
                   >
                     Yes
                   </button>
                   <button
                     onClick={cancelDelete}
-                    className="text-gray-600 hover:text-gray-800 text-sm font-medium px-2 py-1"
+                    className="text-gray-600 hover:text-gray-800 text-xs sm:text-sm font-medium px-2 py-1 bg-gray-100 rounded"
                   >
                     No
                   </button>
@@ -145,7 +153,7 @@ export default function NotesSidebar({
               )}
 
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-gray-900 truncate flex-1 text-sm">
+                <h3 className="font-semibold text-gray-900 truncate flex-1 text-sm pr-2">
                   {note.title || 'Untitled Note'}
                 </h3>
                 <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -169,8 +177,9 @@ export default function NotesSidebar({
                   </button>
                 </div>
               </div>
-              <p className="text-gray-600 line-clamp-2 mb-2 text-xs">
-                {note.content.replace(/<[^>]*>/g, '').substring(0, 100)}
+              <p className="text-gray-600 line-clamp-2 mb-2 text-xs leading-relaxed">
+                {note.content.replace(/<[^>]*>/g, '').substring(0, 80)}
+                {note.content.replace(/<[^>]*>/g, '').length > 80 ? '...' : ''}
               </p>
               <p className="text-gray-400 text-xs">
                 {formatDate(note.updatedAt)}
@@ -178,6 +187,16 @@ export default function NotesSidebar({
             </div>
           ))
         )}
+      </div>
+
+      {/* Mobile close button */}
+      <div className="p-3 border-t border-gray-200 md:hidden">
+        <button
+          onClick={onCloseSidebar}
+          className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition-colors text-sm font-medium"
+        >
+          Close Sidebar
+        </button>
       </div>
     </div>
   );

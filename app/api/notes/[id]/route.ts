@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
-import { getNotesCollection } from '@/lib/mongodb';
+import { getNotesCollection, noteToJSON } from '@/lib/mongodb';
 
 export async function PUT(
   request: NextRequest,
@@ -8,6 +8,12 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
+    
+    // Validate the ID format
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json({ error: 'Invalid note ID' }, { status: 400 });
+    }
+    
     const body = await request.json();
     
     const notesCollection = await getNotesCollection();
@@ -26,7 +32,14 @@ export async function PUT(
       return NextResponse.json({ error: 'Note not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ ...updatedNote, _id: id });
+    // Fetch the updated note to return complete data
+    const updatedDocument = await notesCollection.findOne({ _id: new ObjectId(id) });
+    
+    if (!updatedDocument) {
+      return NextResponse.json({ error: 'Note not found after update' }, { status: 404 });
+    }
+
+    return NextResponse.json(noteToJSON(updatedDocument));
   } catch (error) {
     console.error('Error updating note:', error);
     return NextResponse.json({ error: 'Failed to update note' }, { status: 500 });
@@ -39,6 +52,11 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    
+    // Validate the ID format
+    if (!ObjectId.isValid(id)) {
+      return NextResponse.json({ error: 'Invalid note ID' }, { status: 400 });
+    }
     
     const notesCollection = await getNotesCollection();
     const result = await notesCollection.deleteOne({

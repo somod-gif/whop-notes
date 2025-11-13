@@ -2,7 +2,7 @@
 'use client';
 
 
-import { createWhopAPI } from "@whop-sdk/embedded";
+import { createWhopAPI } from "@whop/sdk";
 import { useEffect, useState } from "react";
 
 export function WhopProvider({ children }: { children: React.ReactNode }) {
